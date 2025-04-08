@@ -3,7 +3,7 @@ require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
-
+const token = process.env.CLIENT_TOKEN;
 // Add GuildMessages intent
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
@@ -35,25 +35,34 @@ client.on(Events.ClientReady, () => {
     console.log('Logged in as ' + client.user.tag);
 });
 
-client.on('messageCreate', async (message) => {
-    console.log(`Message received: ${message.content}`); // Debugging log
 
+client.on(Events.InteractionCreate, async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+	console.log(interaction);
     
-    if (message.author.bot) return; // Ignore bot messages
-
-    if (message.content.toLowerCase() === 'hello') {
-        console.log('Replying to hello'); // Debugging log
-        await message.reply('Hi there!');
+    const command = interaction.client.commands.get(interaction.commandName);
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
     }
-    if(message.content.toLowerCase() === 'chuck') {
-        await message.reply('That is I!');
+    try{
+        await command.execute(interaction);
     }
-});
+    catch (error){
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }});
 
 client.on('error', (error) => {
     console.error('An error occurred:', error);
 });
 
-client.login(process.env.CLIENT_TOKEN);
+
+client.login(token);
+
 
 
