@@ -7,9 +7,11 @@ const token = process.env.CLIENT_TOKEN;
 // Add GuildMessages intent
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
+//Initializing collections
 client.commands = new Collection();
+client.cooldowns = new Collection();
 
-//command folder
+//Command folder
 const foldersPath = path.join(__dirname, 'commands');
 if (!fs.existsSync(foldersPath)) {
     console.error('Commands folder not found');
@@ -32,7 +34,7 @@ for (const folder of commandFolders) {
 }
 
 
-//events folder
+//Events folder
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
     
@@ -46,6 +48,11 @@ for (const file of eventFiles) {
     }
 }
 
+client.on('messageCreate', async(message) => {
+    if (message.content === 'dhon') {
+        await message.reply('sorry');
+    }
+});
 
 client.login(token);
 
